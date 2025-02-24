@@ -1,0 +1,99 @@
+<html>
+<head>
+    <title>Todo App with Notifications</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.3/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0e68c;
+            color: #333333;
+        }
+        input[type="text"], input[type="date"], input[type="time"] {
+            border: 2px solid #333333;
+            border-radius: 5px;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #333333;
+            color: #f0e68c;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #444444;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-md mx-auto mt-10 p-5">
+        <h1 class="text-3xl font-bold mb-4">Retro Todo App</h1>
+        <form id="todoForm">
+            <label for="taskDescription">Task Description:</label>
+            <input type="text" id="taskDescription" placeholder="Enter task description" required>
+            <label for="dueDate">Due Date:</label>
+            <input type="date" id="dueDate" required>
+            <label for="notificationTime">Notification Time:</label>
+            <input type="time" id="notificationTime" required>
+            <button type="button" id="submitButton">Let's Get This Done!</button>
+        </form>
+        <div id="output" class="mt-5 p-3 border-t-2 border-black bg-white"></div>
+    </div>
+    <footer>
+        <p>Made with ❤️. <a href="https://youtube.com/@viral-shorts2.04?si=mM1cvP280KA00hw_" target="_blank" class="underline">With Bramhanand Maurya </a></p>
+    </footer>
+
+    <script>
+        const form = document.getElementById('todoForm');
+        const output = document.getElementById('output');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const taskDescription = document.getElementById('taskDescription').value;
+            const dueDate = document.getElementById('dueDate').value;
+            const notificationTime = document.getElementById('notificationTime').value;
+
+            const substitutedPrompt = `Complete the task ${taskDescription} by ${dueDate} at ${notificationTime}. Once completed, move it to the Completed tab.`;
+
+            output.innerHTML = '';
+
+            const websocket = new WebSocket('wss://backend.buildpicoapps.com/ask_ai_streaming_v2');
+
+            websocket.addEventListener("open", () => {
+                websocket.send(
+                    JSON.stringify({
+                        appId: "green-create",
+                        prompt: substitutedPrompt,
+                    })
+                );
+            });
+
+            websocket.addEventListener("message", (event) => {
+                console.log(event.data);
+                output.innerText = `${output.innerText}${event.data}`;
+            });
+
+            websocket.addEventListener("close", (event) => {
+                console.log("Connection closed", event.code, event.reason);
+                if (event.code != 1000) {
+                    alert("Oops, we ran into an error. Refresh the page and try again.");
+                }
+            });
+
+            websocket.addEventListener("error", (error) => {
+                console.log('WebSocket error', error);
+                alert("Oops, we ran into an error. Refresh the page and try again.");
+            });
+        });
+    </script>
+</body>
+</html>
